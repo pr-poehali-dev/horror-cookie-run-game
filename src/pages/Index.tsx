@@ -1,12 +1,57 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import GameScreen from "@/components/game/GameScreen";
+import RulesScreen from "@/components/game/RulesScreen";
+import AchievementsScreen from "@/components/game/AchievementsScreen";
+import MainMenu from "@/components/game/MainMenu";
+
+export type Screen = "menu" | "game" | "rules" | "achievements";
 
 const Index = () => {
+  const [currentScreen, setCurrentScreen] = useState<Screen>("menu");
+  const [score, setScore] = useState(0);
+  const [achievements, setAchievements] = useState<string[]>([]);
+
+  const handleGameOver = (finalScore: number) => {
+    setScore(finalScore);
+    
+    if (finalScore >= 100 && !achievements.includes("scorer")) {
+      setAchievements([...achievements, "scorer"]);
+    }
+    if (finalScore >= 500 && !achievements.includes("master")) {
+      setAchievements([...achievements, "master"]);
+    }
+    
+    setCurrentScreen("menu");
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
-      </div>
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      {currentScreen === "menu" && (
+        <MainMenu 
+          onStartGame={() => setCurrentScreen("game")}
+          onShowRules={() => setCurrentScreen("rules")}
+          onShowAchievements={() => setCurrentScreen("achievements")}
+          highScore={score}
+        />
+      )}
+      
+      {currentScreen === "game" && (
+        <GameScreen 
+          onGameOver={handleGameOver}
+          onBackToMenu={() => setCurrentScreen("menu")}
+        />
+      )}
+      
+      {currentScreen === "rules" && (
+        <RulesScreen onBack={() => setCurrentScreen("menu")} />
+      )}
+      
+      {currentScreen === "achievements" && (
+        <AchievementsScreen 
+          achievements={achievements}
+          onBack={() => setCurrentScreen("menu")}
+        />
+      )}
     </div>
   );
 };
