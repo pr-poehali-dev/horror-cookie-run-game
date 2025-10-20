@@ -42,14 +42,33 @@ const GameScreen = ({ onGameOver, onBackToMenu }: GameScreenProps) => {
   const [bulletId, setBulletId] = useState(0);
   const [enemyId, setEnemyId] = useState(0);
 
+  const playShootSound = useCallback(() => {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'square';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  }, []);
+
   const shoot = useCallback(() => {
+    playShootSound();
     setBullets(prev => [...prev, {
       id: bulletId,
       x: playerPos.x + PLAYER_SIZE / 2 - BULLET_SIZE / 2,
       y: playerPos.y
     }]);
     setBulletId(prev => prev + 1);
-  }, [playerPos, bulletId]);
+  }, [playerPos, bulletId, playShootSound]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -161,7 +180,7 @@ const GameScreen = ({ onGameOver, onBackToMenu }: GameScreenProps) => {
         id: enemyId,
         x: Math.random() * (GAME_WIDTH - ENEMY_SIZE),
         y: -ENEMY_SIZE,
-        speed: 2 + Math.random() * 3
+        speed: 1 + Math.random() * 1.5
       }]);
       setEnemyId(prev => prev + 1);
     }, 1000);
